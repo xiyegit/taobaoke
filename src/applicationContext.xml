@@ -1,0 +1,96 @@
+<beans xmlns="http://www.springframework.org/schema/beans"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"   
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:aop="http://www.springframework.org/schema/aop" 
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans  
+      http://www.springframework.org/schema/beans/spring-beans.xsd  
+      http://www.springframework.org/schema/context  
+http://www.springframework.org/schema/context/spring-context-4.0.xsd
+http://www.springframework.org/schema/aop 
+http://www.springframework.org/schema/aop/spring-aop.xsd
+ http://www.springframework.org/schema/tx
+                http://www.springframework.org/schema/tx/spring-tx.xsd">   
+
+    <!-- 通过注解的方式配置bean. 注意:base-package指明spring要扫描的包的范围,包下面为spring要注解的bean -->  
+    <context:component-scan base-package="com.jv"></context:component-scan>
+    <!--使AspectJ注解起作用：自动为匹配的类生成代理对象-->
+    <aop:aspectj-autoproxy />
+
+ <!-- 让spring 去读取指定路径下的资源文件 -->  
+   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">  
+      <property name="locations">  
+        <list>  
+            <value>classpath:jdbc.properties</value>  
+        </list>  
+      </property> 
+      </bean>
+
+    
+   <!-- hibernate官方推荐的数据库连接方式 -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"  >
+        <!-- 指定hibernate的配置文件位置,也可以通过 hibernateProperties属性直接设置hibernate配置-->
+         <property name="configLocation" value="classpath:hibernate.cfg.xml"></property>
+        <!-- 配置c3p0数据库连接池 -->
+        <property name="dataSource">
+            <bean class="com.mchange.v2.c3p0.ComboPooledDataSource">
+                <!-- 数据连接信息,注意value的取值,是通过${}取得jdbc.properties配置的值,要注意在spring里面加载配置文件 -->
+                <property name="jdbcUrl" value="${jdbcUrl}"></property>
+                <property name="driverClass" value="${driverClass}"></property>
+                <property name="user" value="${user}"></property>
+                <property name="password" value="${password}"></property>
+            </bean>
+        </property>
+
+           <!-- //加载实体类的映射文件位置及名称 -->
+           
+    <!--    <property name="mappingLocations" value="classpath:com/demo/ssm/po/*.hbm.xml"></property> 
+    <property name="mappingLocations" value="classpath:com/jv/beans/*.hbm.xml"></property>
+     -->
+    	<property name="packagesToScan" value="com.taobaoke.beans" /></bean>
+
+    
+    
+    
+    <!-- 测试mode -->
+      <bean id="testDao" class="com.taobaoke.dao.impl.TestDaoImpl" >
+    	<property name="sessionFactory"  ref="sessionFactory"></property>
+    </bean>
+    <!-- spring面向接口编程,注意scope设置为prototype类型,让每个action/servlet访问业务层都是不同是实例 --> 
+      <bean id="testService" class="com.taobaoke.service.impl.TestServiceImpl"  scope="prototype">
+          <property name="testDao" ref="testDao"></property>
+    </bean>
+      <bean id="testAction" class="com.taobaoke.Controller.TestAction" >
+      	<property name="testService" ref="testService"></property>
+    </bean>
+    
+    <!-- 以下内容为spring声明式事务的管理 -->
+     <!-- Spring管理事务,如果是在xml里面配置,称为spring声明式事务,将事务处理交给spring做,又称为事务管理切面 -->
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+    <!-- 将sessionFactory赋予给事务管理器.以便开启事务,只要配置到这点,spring会自动管理事务(开启,关闭,回滚.)-->
+        <property name="sessionFactory" ref="sessionFactory"></property>
+    </bean>
+    
+      <!-- 配置事务属性 -->
+     <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+        <!-- 配置事务的传播,method:需要进行进行事务传播处理的方法.get*:表示所有业务层以get开头的方法.
+        (这也代表着,如果要处理事务的传播, 注意业务层方法的命名要规范.-->
+            <tx:method name="update*" read-only="false" propagation="REQUIRED"/>
+            <tx:method name="add*" read-only="false" propagation="REQUIRED"/>
+            <tx:method name="delete*" read-only="false" propagation="REQUIRED"/>
+            <tx:method name="get*" read-only="true" propagation="REQUIRED"/>
+            
+            <tx:method name="*"/>
+        </tx:attributes>
+    </tx:advice>
+    
+    <!-- 哪些类的哪些方法参与事务 -->
+    	<aop:config>
+    <!--  定义在service包里的任意方法的执行 -->
+        <aop:pointcut expression="execution(* com.taobaoke.service.impl.*.*(..))" id="txPointcut"/>
+        	<!-- 事务的传播配置 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+    	</aop:config>
+     
+</beans>  

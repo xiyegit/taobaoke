@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+	<!-- 自动生成表 -->
+	 <property name="hibernate.hbm2ddl.auto">update</property>
+	 <!-- 设置hibernate的数据库方言,此为自定义方言类 -->
+ 	 <property name="hibernate.dialect">com.taobaoke.utils.MySql5diUTF8</property>  
+	 <!-- 数据传输编码 --> 
+	<property name="connection.characterEncoding">UTF-8</property>
+	<!--是否将运行期生成的SQL输出到日志以供调试 -->
+	<property name="show_sql">true</property>  
+	<mapping resource="com/taobaoke/beans/Test.hbm.xml"/>
+	</session-factory>
+
+
+</hibernate-configuration>
+

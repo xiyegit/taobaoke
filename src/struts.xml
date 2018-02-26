@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.5//EN"
+    "http://struts.apache.org/dtds/struts-2.5.dtd">
+<struts>
+			<constant name="struts.i18n.encoding" value="UTF-8"/>  
+        <constant name="struts.devMode" value="true"/>  
+  <!-- 告知Struts2运行时使用Spring来创建对象 
+   <constant name="struts.objectFactory" value="spring" /> -->
+
+ <!-- 使用strutsplug处理ajax请求,由于使用了json数据格式,修改struts.xml的package extends="json-default" -->
+	<package name="admin" namespace="/" extends="struts-default">
+	
+	<!-- 全局result,相当于为此package里面的所有action都配置了result -->
+	<global-results>
+		<result name="error">/404.jsp</result>
+	</global-results>
+	
+	<!-- 在struts.xml或者等效的Struts2配置文件中配置Action时，
+	指定<action>的class属性为Spring配置文件中相应bean的id或者name值 -->
+				
+		<action name="test*" class="testAction" method="{1}">
+		    <result name="success"></result>
+		</action>
+	</package>	 
+	<!-- 设置编码 -->
+	<constant name="struts.i18n.ecoding" value="UTF-8"></constant>
+	
+</struts>
